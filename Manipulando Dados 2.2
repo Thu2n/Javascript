@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Twitter com Gatinhos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding-top: 120px;
+      background-color: #f4f4f4;
+    }
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    textarea {
+      width: 70%;
+      height: 60px;
+      padding: 10px;
+      resize: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .feed {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .post {
+      background-color: #fff;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .post img.avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    .post .user {
+      font-weight: bold;
+    }
+    .post .text {
+      margin: 10px 0;
+    }
+    .post .cat {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .likes {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <form id="formPost">
+      <textarea id="textoPost" placeholder="O que você está pensando?"></textarea>
+      <button type="submit">Postar</button>
+    </form>
+  </header>
+
+  <div class="feed" id="feed"></div>
+
+  <script>
+    const feed = [];
+    const feedContainer = document.getElementById("feed");
+    const form = document.getElementById("formPost");
+    const textoPost = document.getElementById("textoPost");
+
+    const usuario = {
+      nome: "thuany.dev",
+      avatar: "https://avatars.githubusercontent.com/u/583231?v=4" // exemplo de avatar
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const texto = textoPost.value.trim();
+      if (!texto) return;
+
+      const imagemGato = await buscarImagemGato();
+
+      const novoPost = {
+        data: new Date().toISOString(),
+        nome: usuario.nome,
+        avatar: usuario.avatar,
+        texto,
+        imagem: imagemGato,
+        likes: 0
+      };
+
+      feed.unshift(novoPost);
+      textoPost.value = "";
+      renderizarFeed();
+    });
+
+    async function buscarImagemGato() {
+      try {
+        const resposta = await fetch("https://api.thecatapi.com/v1/images/search");
+        const dados = await resposta.json();
+        return dados[0].url;
+      } catch (erro) {
+        console.error("Erro ao buscar imagem de gato:", erro);
+        return "https://placekitten.com/400/300"; // fallback
+      }
+    }
+
+    function renderizarFeed() {
+      feedContainer.innerHTML = "";
+      feed.forEach((post, index) => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `
+          <div>
+            <img src="${post.avatar}" class="avatar" alt="Avatar">
+            <span class="user">${post.nome}</span>
+          </div>
+          <div class="text">${post.texto}</div>
+          <img src="${post.imagem}" class="cat" alt="Gatinho fofo">
+          <div class="likes">
+            <button onclick="curtir(${index})">Curtir</button>
+            <span>${post.likes} curtidas</span>
+          </div>
+        `;
+        feedContainer.appendChild(div);
+      });
+    }
+
+    window.curtir = function(index) {
+      feed[index].likes++;
+      renderizarFeed();
+    };
+  </script>
+
+</body>
+</html>

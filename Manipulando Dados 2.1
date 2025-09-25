@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Busca de Usuários GitHub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin-right: 10px;
+    }
+    ul {
+      margin-top: 20px;
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+    img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Buscar Usuários no GitHub</h1>
+  <input type="text" id="busca" placeholder="Digite o nome do usuário">
+  <button id="botaoBuscar">Buscar</button>
+
+  <ul id="resultado"></ul>
+
+  <script>
+    document.getElementById("botaoBuscar").addEventListener("click", async () => {
+      const termo = document.getElementById("busca").value.trim();
+      const lista = document.getElementById("resultado");
+      lista.innerHTML = "";
+
+      if (!termo) {
+        lista.innerHTML = "<li>Digite um nome para buscar.</li>";
+        return;
+      }
+
+      try {
+        const resposta = await fetch(`https://api.github.com/search/users?q=${encodeURIComponent(termo)}`);
+        const dados = await resposta.json();
+
+        if (dados.items && dados.items.length > 0) {
+          dados.items.forEach(usuario => {
+            const item = document.createElement("li");
+            item.innerHTML = `
+              <img src="${usuario.avatar_url}" alt="Avatar">
+              <a href="${usuario.html_url}" target="_blank">${usuario.login}</a>
+            `;
+            lista.appendChild(item);
+          });
+        } else {
+          lista.innerHTML = "<li>Não foram encontrados usuários para esta pesquisa.</li>";
+        }
+      } catch (erro) {
+        lista.innerHTML = "<li>Erro ao buscar usuários. Tente novamente mais tarde.</li>";
+        console.error("Erro na requisição:", erro);
+      }
+    });
+  </script>
+
+</body>
+</html>
